@@ -5,38 +5,34 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: knishiok <knishiok@student.42.jp>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/18 22:37:34 by knishiok          #+#    #+#             */
-/*   Updated: 2023/10/18 23:07:07 by knishiok         ###   ########.fr       */
+/*   Created: 2023/10/20 20:40:29 by knishiok          #+#    #+#             */
+/*   Updated: 2023/10/20 20:47:46 by knishiok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-static void	exit_with_message(char *err_message)
+int	g_success;
+
+void	signal_handler(int signum)
 {
-	ft_putendl_fd(err_message, STDERR_FILENO);
-	exit(EXIT_FAILURE);
+	if (signum == SIGUSR1)
+		g_success = 1;
 }
 
-static void	check_arg(int argc, char **argv)
+void	timeout(void)
 {
-	int	i;
+	long	time;
 
-	if (argc != 3)
-		exit_with_message("The number of argument is invalid.");
-	if (!(*argv[1]))
-		exit_with_message("GIven PID is empty.");
-	i = 0;
-	while (argv[1][i])
+	time = 0;
+	while (g_success == 0)
 	{
-		if (!ft_isdigit(argv[1][i++]))
-			exit_with_message("Given PID is invalid.");
+		usleep(1);
+		time++;
+		if (time >= 100000)
+			exit_with_message("Given PID is invalid!");
 	}
-	if (*argv[2] == '\0')
-		exit_with_message("Given string is empty.");
 }
-
-void hoge() {return ;}
 
 static void	send_char(const pid_t server_pid, char c)
 {
@@ -49,6 +45,9 @@ static void	send_char(const pid_t server_pid, char c)
 			kill(server_pid, SIGUSR1);
 		else
 			kill(server_pid, SIGUSR2);
+		timeout();
+		ft_printf("signal was successfully sent!\n");
+		g_success = 0;
 		shift_bits++;
 		usleep(100);
 	}
@@ -57,17 +56,14 @@ static void	send_char(const pid_t server_pid, char c)
 static void	send_msg(const pid_t server_pid, char *msg)
 {
 	while (*msg)
-	{
-		signal(SIGUSR1, hoge);
-		signal(SIGUSR2, hoge);
 		send_char(server_pid, *msg++);
-	}
 }
 
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
 	pid_t	server_pid;
 
+	signal(SIGUSR1, signal_handler);
 	check_arg(argc, argv);
 	server_pid = ft_atoi(argv[1]);
 	send_msg(server_pid, argv[2]);

@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: knishiok <knishiok@student.42.jp>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/18 22:37:31 by knishiok          #+#    #+#             */
-/*   Updated: 2023/10/18 22:58:14 by knishiok         ###   ########.fr       */
+/*   Created: 2023/10/20 20:40:35 by knishiok          #+#    #+#             */
+/*   Updated: 2023/10/20 20:40:39 by knishiok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@ static void	signal_handler(int signum, siginfo_t *info, void *dummy)
 	static int	bit;
 	static int	c;
 
-	(void)info;
 	(void)dummy;
+	kill(info->si_pid, SIGUSR1);
 	if (signum == SIGUSR1)
 		c |= (1 << bit);
 	bit++;
@@ -27,7 +27,6 @@ static void	signal_handler(int signum, siginfo_t *info, void *dummy)
 		ft_putchar_fd(c, STDOUT_FILENO);
 		bit = 0;
 		c = 0;
-		//kill(info->si_pid, SIGUSR2);
 	}
 }
 
@@ -44,8 +43,6 @@ int	main(void)
 	sigaction(SIGUSR1, &sig, NULL);
 	sigaction(SIGUSR2, &sig, NULL);
 	while (1)
-	{
 		pause();
-	}
 	return (0);
 }
